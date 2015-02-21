@@ -1,6 +1,7 @@
 'use strict';
 
 var assert = require('assert');
+var http = require('http');
 var path = require('path');
 
 var PROJECT_ROOT = path.join(__dirname, '..');
@@ -12,6 +13,20 @@ var variation = require(path.join(TEST_DIR, 'type_variation.js'));
 // preprocess_argv.debug = true;
 
 describe('promise_http', function () {
+    var server;
+    var server_response;
+    var server_port = 12388;
+
+    before(function () {
+        server = http.createServer();
+        server.on('request', function (req, res) {
+            console.error(['server request:', req.method, req.url]);
+            res.write('world');
+            res.end();
+        });
+        server.listen(server_port);
+    });
+
     it('should raise errors if wrong arguments are passed', function () {
         Object.keys(variation).forEach(function (key) {
             if (key === 'Object') {
@@ -21,5 +36,25 @@ describe('promise_http', function () {
                 promise_http(variation[key]);
             });
         });
+    });
+
+    it('should access serverrr', function (done) {
+        promise_http.get(
+            '/hello',
+            {port: server_port}
+        ).then(
+            function (value) {
+                try {
+                    assert.equal('world', value);
+                    done();
+                }
+                catch (er) {
+                    done(er);
+                }
+            },
+            function (reason) {
+                done(reason);
+            }
+        );
     });
 });
