@@ -1,0 +1,29 @@
+{
+    "name": "promise-http",
+    "version": "0.0.1",
+    "description": "http with promise interface",
+    "main": "src/promise-http.js",
+    "scripts": {
+        "test": "mocha test"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:beatak/promise-http.git"
+    },
+    "keywords": [
+        "http",
+        "request",
+        "promise"
+    ],
+    "author": "Takashi Mizohata <beatak@gmail.com> (http://github.com/beatak)",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/beatak/promise-http/issues"
+    },
+    "homepage": "https://github.com/beatak/promise-http",
+    "dependencies": {
+    },
+    "devDependencies": {
+        "mocha": "^2.1.0"
+    }
+}
