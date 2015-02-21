@@ -12,6 +12,14 @@ var variation = require(path.join(TEST_DIR, 'type_variation.js'));
 // preprocess_argv.debug = true;
 
 describe('promise_http', function () {
-    it('should be okay', function () {
+    it('should raise errors if wrong arguments are passed', function () {
+        Object.keys(variation).forEach(function (key) {
+            if (key === 'Object') {
+                return;
+            }
+            assert.throws(function () {
+                promise_http(variation[key]);
+            });
+        });
     });
 });

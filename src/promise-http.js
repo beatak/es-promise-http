@@ -11,8 +11,17 @@ var ALLOWED_URL_OPTIONS = ['auth', 'host', 'hostname', 'path', 'port'];
 var debug = false;
 
 var promise_http = function (option, is_https, request_body) {
-    var carrier = is_https ? https : http;
-    request_body = request_body || {};
+    var er,
+        carrier = is_https ? https : http;
+    if ('object' !== typeof option || null === option || Array.isArray(option)) {
+        er = new Error('option needs to be an object');
+        er.name = 'ArgumentError';
+        throw er;
+    }
+    is_https = true == is_https;
+    if (undefined === request_body) {
+        request_body = {};
+    }
     return (new Promise(function (fullfill, reject) {
         var req = carrier.request(option, function (response) {
             var result = [];

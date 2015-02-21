@@ -4,5 +4,6 @@ module.exports = {
     'Undefined': undefined,
     'Number': 42,
     'Object': {},
-    'Function': function () {}
+    'Function': function () {},
+    'Array': []
 };
