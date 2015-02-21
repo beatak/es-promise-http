@@ -15,13 +15,12 @@ var promise_http = function (option, is_https, request_body) {
     request_body = request_body || {};
     return (new Promise(function (fullfill, reject) {
         var req = carrier.request(option, function (response) {
+            var result = [];
             if (debug) {
                 console.error('STATUS: ' + response.statusCode);
                 console.error('HEADERS: ' + JSON.stringify(response.headers));
             }
-            response.setEncoding('utf8');            
-
-            var result = [];
+            response.setEncoding('utf8');
             response.on('data', function (chunk) {
                 result.push(chunk);
             }).on('end', function () {
