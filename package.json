@@ -8,7 +8,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git@github.com:beatak/promise-http.git"
+        "url": "git@github.com:beatak/es-promise-http.git"
     },
     "keywords": [
         "http",
@@ -18,9 +18,9 @@
     "author": "Takashi Mizohata <beatak@gmail.com> (http://github.com/beatak)",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/beatak/promise-http/issues"
+        "url": "https://github.com/beatak/es-promise-http/issues"
     },
-    "homepage": "https://github.com/beatak/promise-http",
+    "homepage": "https://github.com/beatak/es-promise-http",
     "dependencies": {
     },
     "devDependencies": {
