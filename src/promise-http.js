@@ -33,7 +33,7 @@ var promise_http = function (option, is_https, request_body) {
             response.on('data', function (chunk) {
                 result.push(chunk);
             }).on('end', function () {
-                fullfill(Buffer.concat(result));
+                fullfill(Buffer.concat(result, result.length));
             });
         });
         req.on('error', function (err) {
@@ -91,5 +91,14 @@ promise_http.post = function (myurl, option, body) {
     param.method = 'POST';
     return promise_http(param, is_https, body);
 };
+
+Object.defineProperty(
+    promise_http,
+    'debug',
+    {
+        get: function () {return debug;},
+        set: function (v) {debug = !!v;}
+    }
+);
 
 module.exports = promise_http;
