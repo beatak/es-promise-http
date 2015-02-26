@@ -3,10 +3,12 @@
 var assert = require('assert');
 var http = require('http');
 var path = require('path');
+var generate = require('placeholder-generator');
 
 var PROJECT_ROOT = path.join(__dirname, '..');
 var SRC_DIR = path.join(PROJECT_ROOT, 'src');
 var TEST_DIR = path.join(PROJECT_ROOT, 'test');
+var HTTP_PORT = 12388;
 
 var promise_http = require(path.join(SRC_DIR, 'promise-http.js'));
 var variation = require(path.join(TEST_DIR, 'type_variation.js'));
@@ -15,7 +17,6 @@ promise_http.debug = true;
 describe('promise_http', function () {
     var server;
     var server_response;
-    var server_port = 12388;
 
     before(function () {
         server = http.createServer();
@@ -24,7 +25,7 @@ describe('promise_http', function () {
             res.write('world');
             res.end();
         });
-        server.listen(server_port);
+        server.listen(HTTP_PORT);
     });
 
     it('should raise errors if wrong arguments are passed', function () {
@@ -41,7 +42,7 @@ describe('promise_http', function () {
     it('should access serverrr', function (done) {
         promise_http.get(
             '/hello',
-            {port: server_port}
+            {port: HTTP_PORT}
         ).then(
             function (value) {
                 try {
