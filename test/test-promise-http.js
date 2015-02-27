@@ -39,9 +39,10 @@ describe('promise_http', function () {
         });
     });
 
-    it('should access serverrr', function (done) {
+    it('should access server', function (done) {
         promise_http.get(
             '/hello',
+            undefined,
             {port: HTTP_PORT}
         ).then(
             function (value) {

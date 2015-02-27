@@ -7,12 +7,12 @@ var querystring = require('querystring');
 
 var ALLOWED_REQUEST_OPTIONS = ['agent', 'auth', 'headers', 'host', 'hostname', 'keepAlive', 'keepAliveMsecs', 'localAddress', 'path', 'port', 'socketPath'];
 var ALLOWED_URL_OPTIONS = ['auth', 'host', 'hostname', 'path', 'port'];
+var DEFAULT_UA = 'Mozilla/5.0 (Node) Node (like Gecko)';
 
 var debug = false;
 
-var promise_http = function (option, is_https, request_body) {
-    var er,
-        carrier = is_https ? https : http;
+var promise_http = function (option, request_body, is_https) {
+    var er, carrier;
 
     if ('object' !== typeof option || null === option || Array.isArray(option)) {
         er = new Error('option needs to be an object');
@@ -24,8 +24,25 @@ var promise_http = function (option, is_https, request_body) {
     if (undefined === request_body) {
         request_body = {};
     }
+    carrier = is_https ? https : http;
 
-    return (new Promise(function (fullfill, reject) {
+    return new Promise(function (fulfill, reject) {
+        var data = querystring.stringify(request_body);
+        if (!option.headers) {
+            option.headers = {};
+        }
+        if (!option.headers['Content-Type']) {
+            option.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+        }
+        if (!option.headers['User-Agent']) {
+            option.headers['User-Agent'] = DEFAULT_UA;
+        }
+        option.headers['Content-Length'] = data.length;
+
+        if (debug) {
+            console.error(JSON.stringify(['REQUESTING: ', option, data], '\n', 2));
+        }
+
         var req = carrier.request(option, function (response) {
             var result = [];
             if (debug) {
@@ -38,19 +55,39 @@ var promise_http = function (option, is_https, request_body) {
                 result.push(chunk.toString());
             });
             response.on('end', function () {
-                // fullfill(Buffer.concat(result, result.length));
-                // fullfill only returns string now until
+                // fulfill(Buffer.concat(result, result.length));
+                // fulfill only returns string now until
                 // the buffer issue is fixed.
-                fullfill(result.join(''));
+                fulfill(capsule(result.join('')));
             });
         });
         req.on('error', function (err) {
             reject(err);
         });
         // data writing
-        req.write(querystring.stringify(request_body));
+        req.write(data);
         req.end();
-    }));
+    });
+};
+
+var capsule = function (value, response) {
+    // probably should have binary option here.
+    var result = new String(value);
+    Object.defineProperty(
+        result,
+        'header',
+        {
+            get: function (){return response.header;}
+        }
+    );
+    Object.defineProperty(
+        result,
+        'statusCode',
+        {
+            get: function (){return response.statusCode;}
+        }
+    );
+    return result;
 };
 
 var create_request_option = function (myurl, option) {
@@ -84,20 +121,20 @@ var create_request_option = function (myurl, option) {
     return [result, is_https];
 };
 
-promise_http.get = function (myurl, option, body) {
+promise_http.get = function (myurl, body, option) {
     var arr = create_request_option(myurl, option);
     var param = arr[0];
     var is_https = arr[1];
     param.method = 'GET';
-    return promise_http(param, is_https, body);
+    return promise_http(param, body, is_https);
 };
 
-promise_http.post = function (myurl, option, body) {
+promise_http.post = function (myurl, body, option) {
     var arr = create_request_option(myurl, option);
     var param = arr[0];
     var is_https = arr[1];
     param.method = 'POST';
-    return promise_http(param, is_https, body);
+    return promise_http(param, body, is_https);
 };
 
 Object.defineProperty(
