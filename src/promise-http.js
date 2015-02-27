@@ -58,7 +58,7 @@ var promise_http = function (option, request_body, is_https) {
                 // fulfill(Buffer.concat(result, result.length));
                 // fulfill only returns string now until
                 // the buffer issue is fixed.
-                fulfill(capsule(result.join('')));
+                fulfill(capsule(result.join(''), response));
             });
         });
         req.on('error', function (err) {
@@ -75,9 +75,9 @@ var capsule = function (value, response) {
     var result = new String(value);
     Object.defineProperty(
         result,
-        'header',
+        'headers',
         {
-            get: function (){return response.header;}
+            get: function (){return response.headers;}
         }
     );
     Object.defineProperty(
