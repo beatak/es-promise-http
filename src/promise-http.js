@@ -27,7 +27,13 @@ var promise_http = function (option, request_body, is_https) {
     carrier = is_https ? https : http;
 
     return new Promise(function (fulfill, reject) {
-        var data = querystring.stringify(request_body);
+        var data;
+        if ('object' === typeof request_body) {
+            data = querystring.stringify(request_body);
+        }
+        else {
+            data = request_body;
+        }
         if (!option.headers) {
             option.headers = {};
         }
@@ -40,7 +46,7 @@ var promise_http = function (option, request_body, is_https) {
         option.headers['Content-Length'] = data.length;
 
         if (debug) {
-            console.error(JSON.stringify(['REQUESTING: ', option, data], '\n', 2));
+            console.error(JSON.stringify(['REQUESTING: ', is_https, option, data], '\n', 2));
         }
 
         var req = carrier.request(option, function (response) {
@@ -58,7 +64,14 @@ var promise_http = function (option, request_body, is_https) {
                 // fulfill(Buffer.concat(result, result.length));
                 // fulfill only returns string now until
                 // the buffer issue is fixed.
-                fulfill(capsule(result.join(''), response));
+                var returning;
+                try {
+                    returning = result.join('');
+                    fulfill(capsule(returning, response));
+                }
+                catch (er) {
+                    reject(er);
+                }
             });
         });
         req.on('error', function (err) {
