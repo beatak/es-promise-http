@@ -27,80 +27,65 @@ var promise_http = function (option, request_body, is_https) {
     carrier = is_https ? https : http;
 
     return new Promise(function (fulfill, reject) {
-        var data;
+        var body_data;
         if ('object' === typeof request_body) {
-            data = querystring.stringify(request_body);
+            body_data = querystring.stringify(request_body);
         }
         else {
-            data = request_body;
+            body_data = request_body;
         }
         if (!option.headers) {
             option.headers = {};
         }
-        if (!option.headers['Content-Type']) {
+        if (!option.headers['Content-Type'] && ('POST' === option.method || 'PUT' === option.method || body_data.length)) {
             option.headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }
         if (!option.headers['User-Agent']) {
             option.headers['User-Agent'] = DEFAULT_UA;
         }
-        option.headers['Content-Length'] = data.length;
+        // FIXME length maybe different for a) multibyte string or b) binary data
+        option.headers['Content-Length'] = body_data.length;
 
         if (debug) {
-            console.error(JSON.stringify(['REQUESTING: ', is_https, option, data], '\n', 2));
+            console.error('REQUEST: ' + JSON.stringify({is_https: is_https, option: option, data: body_data}));
         }
 
-        var req = carrier.request(option, function (response) {
+        var req = carrier.request(option, function (res) {
             var result = [];
+            var is_binary = true;
             if (debug) {
-                console.error('STATUS: ' + response.statusCode);
-                console.error('HEADERS: ' + JSON.stringify(response.headers));
+                console.error('RESPONSE STATUS: ' + res.statusCode);
+                console.error('RESPONSE HEADERS: ' + JSON.stringify(res.headers));
             }
-            response.setEncoding('utf8');
-            response.on('data', function (chunk) {
-                // result.push(chunk);
-                result.push(chunk.toString());
+            if (res.headers['content-type'] && 0 === res.headers['content-type'].indexOf('text')) {
+                res.setEncoding('utf8');
+                is_binary = false;
+            }
+            res.on('data', function (chunk) {
+                result.push(chunk);
             });
-            response.on('end', function () {
-                // fulfill(Buffer.concat(result, result.length));
-                // fulfill only returns string now until
-                // the buffer issue is fixed.
+            res.on('end', function () {
                 var returning;
-                try {
+                if (is_binary) {
+                    returning = Buffer.concat(result);
+                }
+                else {
                     returning = result.join('');
-                    fulfill(capsule(returning, response));
                 }
-                catch (er) {
-                    reject(er);
-                }
+                fulfill({
+                    data: returning,
+                    response: res
+                });
             });
         });
         req.on('error', function (err) {
             reject(err);
         });
+
         // data writing
-        req.write(data);
+        req.write(body_data);
         req.end();
     });
-};
-
-var capsule = function (value, response) {
-    // probably should have binary option here.
-    var result = new String(value);
-    Object.defineProperty(
-        result,
-        'headers',
-        {
-            get: function (){return response.headers;}
-        }
-    );
-    Object.defineProperty(
-        result,
-        'statusCode',
-        {
-            get: function (){return response.statusCode;}
-        }
-    );
-    return result;
 };
 
 var create_request_option = function (myurl, option) {
@@ -134,10 +119,11 @@ var create_request_option = function (myurl, option) {
     return [result, is_https];
 };
 
-promise_http.get = function (myurl, body, option) {
+promise_http.get = function (myurl, option) {
     var arr = create_request_option(myurl, option);
     var param = arr[0];
     var is_https = arr[1];
+    var body = {};
     param.method = 'GET';
     return promise_http(param, body, is_https);
 };

@@ -14,3 +14,8 @@ http.get('http://www.google.com/')
 		}
 	);
 ```
+
+# CREDIT
+
+Use a photo for testing from:
+https://www.flickr.com/photos/torley/2343919702
